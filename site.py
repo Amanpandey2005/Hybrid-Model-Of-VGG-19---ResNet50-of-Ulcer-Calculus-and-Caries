@@ -1,12 +1,22 @@
 import streamlit as st
 from PIL import Image
 import numpy as np
+import gdown
+import os
+from tensorflow.keras.models import load_model
 import tensorflow as tf
 from tensorflow.keras.preprocessing import image
 # No longer need to import razorpay or json
 
 # --- Doctor Recommendation Logic ---
 # Dummy Doctor Database (keeping the 'fee' for informational purposes)
+
+if not os.path.exists("best_model.h5"):
+    url = "https://drive.google.com/uc?id=1FfCPITNQOmY1QX361Ccuc-_l6XKxIESu"
+    gdown.download(url, "best_model.h5", quiet=False)
+
+model = load_model("best_model.h5")
+
 DOCTOR_DATABASE = {
     'Cardiologist': [
         {'name': 'Dr. Evelyn Reed', 'location': 'CardioCare Clinic, Downtown', 'rating': 4.8, 'fee': 1500},
