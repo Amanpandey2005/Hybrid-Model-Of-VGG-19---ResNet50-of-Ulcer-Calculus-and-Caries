@@ -11,11 +11,15 @@ from tensorflow.keras.preprocessing import image
 # --- Doctor Recommendation Logic ---
 # Dummy Doctor Database (keeping the 'fee' for informational purposes)
 
-if not os.path.exists("best_model.h5"):
-    url = "https://drive.google.com/1FfCPITNQOmY1QX361Ccuc-_l6XKxIESu"
-    gdown.download(url, "best_model.h5", quiet=False)
+# Google Drive File ID
+file_id = "1FfCPITNQOmY1QX361Ccuc-_l6XKxIESu"
+url = f"https://drive.google.com/uc?id={file_id}"
 
-model = load_model("best_model.h5")
+model_path = "best_model.h5"
+if not os.path.exists(model_path):
+    gdown.download(url, model_path, quiet=False)
+
+model = load_model(model_path)
 
 DOCTOR_DATABASE = {
     'Cardiologist': [
