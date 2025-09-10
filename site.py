@@ -10,16 +10,25 @@ from tensorflow.keras.preprocessing import image
 
 # --- Doctor Recommendation Logic ---
 # Dummy Doctor Database (keeping the 'fee' for informational purposes)
+# 1. Define a simple, relative path for the model on the server
+model_path = 'best_model.h5'
+google_drive_url = 'https://drive.google.com/file/d/1qb4k0OdZhvTHs4AjEP69lnwT8pnTB74d/view?usp=sharing'
+
+# 2. If the model file doesn't exist on the server, download it
+if not os.path.exists(model_path):
+    print(f"Downloading model to {model_path}...")
+    gdown.download(url=google_drive_url, output=model_path, quiet=False)
+    print("Download complete.")
+
+# 3. Load the model from the path where it was just downloaded
+try:
+    model = load_model(model_path)
+    print("Model loaded successfully!")
+    # Your app logic here...
+except Exception as e:
+    print(f"Error loading model: {e}")
 
 # Google Drive File ID
-file_id = "1qb4k0OdZhvTHs4AjEP69lnwT8pnTB74d"
-url = f"https://drive.google.com/uc?id={file_id}"
-
-model_path = "best_model.h5"
-if not os.path.exists(model_path):
-    gdown.download(url, model_path, quiet=False)
-
-model = load_model(model_path)
 
 DOCTOR_DATABASE = {
     'Cardiologist': [
@@ -232,4 +241,5 @@ elif page == "Appointment Booking":
             st.success(f"✅ Appointment successfully booked for {patient_name} with {selected_doctor_name} on {appointment_date} at {appointment_time}.")
             st.info("You will receive a confirmation call shortly. Please pay the consultation fee at the clinic.")
             st.balloons()
+
 
