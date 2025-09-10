@@ -11,7 +11,7 @@ from tensorflow.keras.preprocessing import image
 # --- Doctor Recommendation Logic ---
 # Dummy Doctor Database (keeping the 'fee' for informational purposes)
 # 1. Define a simple, relative path for the model on the server
-model_path = 'best_model.h5'
+model_path = 'C:\Users\amanp\OneDrive\Documents\Github\Hybrid Model OF VGG-19 & ResNet-50\best_model.h5'
 google_drive_url = 'https://drive.google.com/file/d/1qb4k0OdZhvTHs4AjEP69lnwT8pnTB74d/view?usp=drive_link'
 
 # 2. If the model file doesn't exist on the server, download it
@@ -241,6 +241,7 @@ elif page == "Appointment Booking":
             st.success(f"✅ Appointment successfully booked for {patient_name} with {selected_doctor_name} on {appointment_date} at {appointment_time}.")
             st.info("You will receive a confirmation call shortly. Please pay the consultation fee at the clinic.")
             st.balloons()
+
 
 
 
