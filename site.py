@@ -12,7 +12,7 @@ from tensorflow.keras.preprocessing import image
 # Dummy Doctor Database (keeping the 'fee' for informational purposes)
 
 if not os.path.exists("best_model.h5"):
-    url = "https://drive.google.com/uc?id=1FfCPITNQOmY1QX361Ccuc-_l6XKxIESu"
+    url = "https://drive.google.com/1FfCPITNQOmY1QX361Ccuc-_l6XKxIESu"
     gdown.download(url, "best_model.h5", quiet=False)
 
 model = load_model("best_model.h5")
