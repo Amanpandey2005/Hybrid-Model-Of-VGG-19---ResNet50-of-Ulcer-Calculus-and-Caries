@@ -12,7 +12,7 @@ from tensorflow.keras.preprocessing import image
 # Dummy Doctor Database (keeping the 'fee' for informational purposes)
 
 # Google Drive File ID
-file_id = "1FfCPITNQOmY1QX361Ccuc-_l6XKxIESu"
+file_id = "1qb4k0OdZhvTHs4AjEP69lnwT8pnTB74d"
 url = f"https://drive.google.com/uc?id={file_id}"
 
 model_path = "best_model.h5"
@@ -232,3 +232,4 @@ elif page == "Appointment Booking":
             st.success(f"✅ Appointment successfully booked for {patient_name} with {selected_doctor_name} on {appointment_date} at {appointment_time}.")
             st.info("You will receive a confirmation call shortly. Please pay the consultation fee at the clinic.")
             st.balloons()
+
