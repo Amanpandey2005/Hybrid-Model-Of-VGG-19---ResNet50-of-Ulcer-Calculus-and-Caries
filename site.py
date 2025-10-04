@@ -81,12 +81,14 @@ def recommend_doctor(symptoms):
 # --- End of Recommendation Logic ---
 
 # ✅ Load trained model
+# Other code...
 try:
-  # Corrected absolute path
-model = load_model(r'C:\Users\AMAN PANDEY\Programs\Hybrid Model\Hybrid\best_model.h5')
+    # Notice the indentation here
+    model = load_model(r'C:\Users\AMAN PANDEY\Programs\Hybrid Model\Hybrid\best_model.h5')
+    # any other code that should be "tried" must also be indented
 except Exception as e:
-    st.error(f"Error loading model: {e}")
-    st.stop()
+    print(f"An error occurred: {e}")
+
 
 # ✅ Class names
 class_names = ['Calculus', 'Dental Caries', 'Ulcer']
