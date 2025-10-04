@@ -82,7 +82,7 @@ def recommend_doctor(symptoms):
 
 # ✅ Load trained model
 try:
-    model = tf.keras.models.load_model(r"C:\Users\amanp\OneDrive\Documents\Github\Hybrid Model OF VGG-19 & ResNet-50\best_model.h5")
+    model = tf.keras.models.load_model(r"C:\Users\amanp\C and C++ Programs\Hybrid Model\Hybrid-Model-Of-VGG-19---ResNet50-of-Ulcer-Calculus-and-Caries\best_model.h5")
 except Exception as e:
     st.error(f"Error loading model: {e}")
     st.stop()
@@ -241,6 +241,7 @@ elif page == "Appointment Booking":
             st.success(f"✅ Appointment successfully booked for {patient_name} with {selected_doctor_name} on {appointment_date} at {appointment_time}.")
             st.info("You will receive a confirmation call shortly. Please pay the consultation fee at the clinic.")
             st.balloons()
+
 
 
 
