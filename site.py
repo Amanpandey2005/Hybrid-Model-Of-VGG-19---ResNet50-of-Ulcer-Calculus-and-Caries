@@ -21,12 +21,6 @@ if not os.path.exists(model_path):
     print("Download complete.")
 
 # 3. Load the model from the path where it was just downloaded
-try:
-    model = load_model(model_path)
-    print("Model loaded successfully!")
-    # Your app logic here...
-except Exception as e:
-    print(f"Error loading model: {e}")
 
 # Google Drive File ID
 
@@ -244,6 +238,7 @@ elif page == "Appointment Booking":
             st.success(f"✅ Appointment successfully booked for {patient_name} with {selected_doctor_name} on {appointment_date} at {appointment_time}.")
             st.info("You will receive a confirmation call shortly. Please pay the consultation fee at the clinic.")
             st.balloons()
+
 
 
 
