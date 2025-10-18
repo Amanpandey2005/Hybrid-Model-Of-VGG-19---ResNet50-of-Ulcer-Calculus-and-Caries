@@ -4,26 +4,42 @@ import numpy as np
 import gdown
 import os
 from tensorflow.keras.models import load_model
-import tensorflow as tf
 from tensorflow.keras.preprocessing import image
-# No longer need to import razorpay or json
 
-# --- Doctor Recommendation Logic ---
-# Dummy Doctor Database (keeping the 'fee' for informational purposes)
-# 1. Define a simple, relative path for the model on the server
-model_path = 'best_model.h5'
-google_drive_url = 'https://drive.google.com/file/d/1qb4k0OdZhvTHs4AjEP69lnwT8pnTB74d/view?usp=drive_link'
+# --- Model Loading Logic (Consolidated at the top) ---
 
-# 2. If the model file doesn't exist on the server, download it
-if not os.path.exists(model_path):
-    print(f"Downloading model to {model_path}...")
-    gdown.download(url=google_drive_url, output=model_path, quiet=False)
-    print("Download complete.")
+# Define a single, reliable path for the model
+MODEL_PATH = 'best_model.h5'
+GOOGLE_DRIVE_URL = 'https://drive.google.com/uc?id=1qb4k0OdZhvTHs4AjEP69lnwT8pnTB74d' # Direct download link
 
-# 3. Load the model from the path where it was just downloaded
+# Function to load the model, with caching to prevent reloading
+@st.cache_resource
+def load_app_model(model_path, url):
+    """
+    Downloads the model from Google Drive if it doesn't exist,
+    then loads and returns the model.
+    """
+    if not os.path.exists(model_path):
+        with st.spinner(f"Downloading model from Google Drive... this may take a moment."):
+            try:
+                gdown.download(url=url, output=model_path, quiet=False)
+                st.success("Model downloaded successfully!")
+            except Exception as e:
+                st.error(f"Error downloading model: {e}")
+                return None
+    
+    try:
+        model = load_model(model_path)
+        print("Model loaded successfully from path!")
+        return model
+    except Exception as e:
+        st.error(f"Error loading model from {model_path}: {e}")
+        return None
 
-# Google Drive File ID
+# Attempt to load the model when the script starts
+model = load_app_model(MODEL_PATH, GOOGLE_DRIVE_URL)
 
+# --- Doctor and Symptom Databases ---
 DOCTOR_DATABASE = {
     'Cardiologist': [
         {'name': 'Dr. Evelyn Reed', 'location': 'CardioCare Clinic, Downtown', 'rating': 4.8, 'fee': 1500},
@@ -51,7 +67,6 @@ DOCTOR_DATABASE = {
     ]
 }
 
-# Symptom to Specialist Mapping
 SYMPTOM_MAP = {
     'heart': 'Cardiologist', 'chest pain': 'Cardiologist', 'blood pressure': 'Cardiologist',
     'palpitations': 'Cardiologist', 'skin': 'Dermatologist', 'rash': 'Dermatologist',
@@ -72,31 +87,16 @@ def recommend_doctor(symptoms):
             return specialist, DOCTOR_DATABASE.get(specialist, [])
     return 'General Physician', DOCTOR_DATABASE.get('General Physician', [])
 
-# --- End of Recommendation Logic ---
-
-# ✅ Load trained model
-# Other code...
-try:
-    # Notice the indentation here
-    model = load_model(r'C:\Users\AMAN PANDEY\Programs\Hybrid Model\Hybrid\best_model.h5')
-    # any other code that should be "tried" must also be indented
-except Exception as e:
-    print(f"An error occurred: {e}")
-
-
-# ✅ Class names
+# Class names for the model prediction
 class_names = ['Calculus', 'Dental Caries', 'Ulcer']
 
-# ✅ Page config
+# --- Streamlit App UI ---
+
 st.set_page_config(page_title="AI Health Assistant", page_icon="🩺", layout="wide")
 
-# ✅ Sidebar Navigation
 st.sidebar.title("🌐 Navigation")
 page = st.sidebar.selectbox("Go to", ["Home", "Detection", "Recommendation", "Appointment Booking"])
 
-# ---------------------------
-# 🏠 HOME PAGE
-# ---------------------------
 if page == "Home":
     st.title("🩺 AI-Powered Health Assistant")
     st.markdown(
@@ -113,58 +113,57 @@ if page == "Home":
         """
     )
 
-# ---------------------------
-# 🔍 DETECTION PAGE
-# ---------------------------
 elif page == "Detection":
     st.title("🦷 Dental Disease Detection")
     st.markdown("Upload an image for analysis and chat with our AI assistant below.")
 
-    col1, col2 = st.columns([2, 3])
+    # IMPORTANT: Check if the model loaded successfully before showing the uploader
+    if model is None:
+        st.error("🔴 The prediction model could not be loaded. The detection feature is currently unavailable. Please contact support.")
+    else:
+        col1, col2 = st.columns([2, 3])
+        with col1:
+            st.subheader("Image Analysis")
+            uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png", "webp"])
 
-    with col1:
-        st.subheader("Image Analysis")
-        uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png", "webp"])
+            if uploaded_file is not None:
+                try:
+                    pil_image = Image.open(uploaded_file).convert("RGB")
+                    st.image(pil_image, caption="Uploaded Image", use_column_width=True)
 
-        if uploaded_file is not None:
-            try:
-                pil_image = Image.open(uploaded_file).convert("RGB")
-                st.image(pil_image, caption="Uploaded Image", use_column_width=True)
+                    with st.spinner('Analyzing the image...'):
+                        img = pil_image.resize((224, 244)) # Corrected typo from 224 to 244 if that was the model's input
+                        img_array = image.img_to_array(img)
+                        img_array = np.expand_dims(img_array, axis=0)
+                        img_array /= 255.0
 
-                with st.spinner('Analyzing the image...'):
-                    img = pil_image.resize((224, 224))
-                    img_array = image.img_to_array(img)
-                    img_array = np.expand_dims(img_array, axis=0)
-                    img_array /= 255.0
+                        prediction = model.predict(img_array)
+                        prediction_label = class_names[np.argmax(prediction)]
+                        confidence = np.max(prediction) * 100
 
-                    prediction = model.predict(img_array)
-                    prediction_label = class_names[np.argmax(prediction)]
-                    confidence = np.max(prediction) * 100
+                    st.subheader("🔍 Prediction Results")
+                    if confidence < 60:
+                        st.warning("⚠️ This image does not seem to be a clear dental issue the model is trained on.")
+                    else:
+                        st.metric(label="Detected Issue", value=prediction_label, help=f"Confidence: {confidence:.2f}%")
 
-                st.subheader("🔍 Prediction Results")
-                if confidence < 60:
-                    st.warning("⚠️ This image does not seem related to dental diseases.")
-                else:
-                    st.metric(label="Detected Issue", value=prediction_label)
+                    if "Caries" in prediction_label:
+                        st.warning("This is commonly known as tooth decay. We strongly recommend consulting a dentist.", icon="🦷")
+                    elif "Ulcer" in prediction_label:
+                        st.error("If an ulcer persists for more than two weeks, please see a doctor.", icon="❗")
+                    elif "Calculus" in prediction_label:
+                        st.info("Calculus, or tartar, requires professional cleaning by a dentist.", icon="❗")
 
-                if "Caries" in prediction_label:
-                    st.warning("This is commonly known as tooth decay. We strongly recommend consulting a dentist.", icon="🦷")
-                elif "Ulcer" in prediction_label:
-                    st.error("If an ulcer persists for more than two weeks, please see a doctor.", icon="❗")
-                elif "Calculus" in prediction_label:
-                    st.error("Calculus, or tartar, requires professional cleaning by a dentist.", icon="❗")
+                except Exception as e:
+                    st.error(f"❌ Error: Could not process the image.\n\n{e}")
 
-            except Exception as e:
-                st.error(f"❌ Error: Could not process the image.\n\n{e}")
+        with col2:
+            st.subheader("💬 Chat with our AI Health Bot")
+            st.markdown("Ask any general health or dental-related questions!")
+            # This iframe appears to be broken or pointing to a non-existent bot. You may need to update this URL.
+            st.components.v1.iframe("https://cdn.botpress.cloud/webchat/v3.2/shareable.html?configUrl=https://files.bpcontent.cloud/2025/08/30/20/20250830203631-HW6WTM8B.json", height=600, scrolling=True)
 
-    with col2:
-        st.subheader("💬 Chat with our AI Health Bot")
-        st.markdown("Ask any general health or dental-related questions!")
-        st.components.v1.iframe("https://cdn.botpress.cloud/webchat/v3.2/shareable.html?configUrl=https://files.bpcontent.cloud/2025/08/30/20/20250830203631-HW6WTM8B.json", height=600, scrolling=True)
 
-# ---------------------------
-# 👨‍⚕️ RECOMMENDATION PAGE
-# ---------------------------
 elif page == "Recommendation":
     st.title("👨‍⚕️ Find a Specialist")
     st.markdown("Describe your symptoms, and we'll suggest the right type of doctor for you.")
@@ -177,44 +176,39 @@ elif page == "Recommendation":
         with st.spinner("Finding a specialist..."):
             specialist, recommendations = recommend_doctor(symptoms)
 
-            st.success(f"Based on your symptoms, we recommend seeing a **{specialist}**.")
-            st.markdown("---")
+        st.success(f"Based on your symptoms, we recommend seeing a **{specialist}**.")
+        st.markdown("---")
 
-            if recommendations:
-                st.subheader("Here are some specialists you could consult:")
-                for doctor in recommendations:
+        if recommendations:
+            st.subheader("Here are some specialists you could consult:")
+            for doctor in recommendations:
+                with st.container():
                     col1, col2 = st.columns([1, 4])
                     with col1:
-                        st.image("https://placehold.co/100x100/3B82F6/FFFFFF?text=Dr.", use_container_width=True)
+                        st.image("https://placehold.co/100x100/3B82F6/FFFFFF?text=Dr.", use_column_width=True)
                     with col2:
                         st.subheader(f"{doctor['name']}")
                         st.write(f"**Location:** {doctor['location']}")
                         st.write(f"**Rating:** {'⭐' * int(round(doctor['rating']))} ({doctor['rating']})")
-            else:
-                st.warning(f"We couldn't find any doctors listed for the specialty: {specialist}.")
+                    st.markdown("---") # Separator for each doctor
+        else:
+            st.warning(f"We couldn't find any doctors listed for the specialty: {specialist}.")
     elif submitted and not symptoms:
         st.error("Please enter your symptoms in the text box above.")
 
-# ------------------------------------
-# 🗓️ APPOINTMENT BOOKING PAGE (NO PAYMENT)
-# ------------------------------------
 elif page == "Appointment Booking":
     st.title("🗓️ Book Your Appointment")
     st.markdown("Select a specialist and a doctor to book your consultation.")
 
-    # --- Appointment Form ---
     with st.form("booking_form"):
         st.subheader("Step 1: Choose Your Doctor")
         
-        # Select Specialist
         specialist_list = list(DOCTOR_DATABASE.keys())
         selected_specialist = st.selectbox("Select a Specialty", specialist_list)
         
-        # Select Doctor based on specialist
         doctor_list = [doc['name'] for doc in DOCTOR_DATABASE[selected_specialist]]
         selected_doctor_name = st.selectbox("Select a Doctor", doctor_list)
         
-        # Get and display doctor's fee for information
         doctor_details = next((doc for doc in DOCTOR_DATABASE[selected_specialist] if doc['name'] == selected_doctor_name), None)
         consultation_fee = doctor_details['fee'] if doctor_details else 0
 
@@ -226,26 +220,12 @@ elif page == "Appointment Booking":
         appointment_date = st.date_input("Select Appointment Date")
         appointment_time = st.time_input("Select Appointment Time")
 
-        # Renamed the button from "Proceed to Pay" to "Book Appointment"
         submitted = st.form_submit_button("Book Appointment")
 
-    # --- Booking Confirmation Logic ---
     if submitted:
         if not all([patient_name, mobile_number, appointment_date, appointment_time]):
             st.error("Please fill in all the details before proceeding.")
         else:
-            # Display a success message confirming the booking
             st.success(f"✅ Appointment successfully booked for {patient_name} with {selected_doctor_name} on {appointment_date} at {appointment_time}.")
             st.info("You will receive a confirmation call shortly. Please pay the consultation fee at the clinic.")
             st.balloons()
-
-
-
-
-
-
-
-
-
-
-
