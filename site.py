@@ -227,7 +227,7 @@ elif page == "Recommendation":
                 for doctor in recommendations:
                     col1, col2 = st.columns([1, 4])
                     with col1:
-                        st.image("https://placehold.co/100x100/3B82F6/FFFFFF?text=Dr.", use_container_width=True)
+                        st.image("https://placehold.co/100x100/3B82F6/FFFFFF?text=Dr.", use_column_width=True)
                     with col2:
                         st.subheader(f"{doctor['name']}")
                         st.write(f"**Location:** {doctor['location']}")
@@ -286,4 +286,5 @@ elif page == "Appointment Booking":
             st.success(f"✅ Appointment successfully booked for {patient_name} with {selected_doctor_name} on {appointment_date} at {appointment_time}.")
             st.info("You will receive a confirmation call shortly. Please pay the consultation fee at the clinic.")
             st.balloons()
+
 
