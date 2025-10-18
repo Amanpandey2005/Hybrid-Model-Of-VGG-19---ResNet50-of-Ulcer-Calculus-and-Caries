@@ -135,7 +135,7 @@ elif page == "Detection":
         if uploaded_file is not None:
             try:
                 pil_image = Image.open(uploaded_file).convert("RGB")
-                st.image(pil_image, caption="Uploaded Image", use_container_width=True)
+                st.image(pil_image, caption="Uploaded Image", use_column_width=True)
 
                 with st.spinner('Analyzing the image...'):
                     img = pil_image.resize((224, 224))
@@ -244,6 +244,7 @@ elif page == "Appointment Booking":
             st.success(f"✅ Appointment successfully booked for {patient_name} with {selected_doctor_name} on {appointment_date} at {appointment_time}.")
             st.info("You will receive a confirmation call shortly. Please pay the consultation fee at the clinic.")
             st.balloons()
+
 
 
 
