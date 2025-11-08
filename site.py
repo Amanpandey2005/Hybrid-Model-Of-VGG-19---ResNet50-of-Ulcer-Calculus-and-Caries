@@ -8,42 +8,28 @@ import tensorflow as tf
 from tensorflow.keras.preprocessing import image
 # No longer need to import razorpay or json
 
-
-
 # --- Doctor Recommendation Logic ---
 
 # Dummy Doctor Database (keeping the 'fee' for informational purposes)
 
-# 1. Define a simple, relative path for the model on the server
-model_path = 'best_model.h5'
-google_drive_url = 'https://drive.google.com/file/d/1qb4k0OdZhvTHs4AjEP69lnwT8pnTB74d/view?usp=drive_link'
-
-
-
-# 2. If the model file doesn't exist on the server, download it
+# ✅ Load or Download the Model Safely
+model_path = "best_model.h5"
+google_drive_url = "https://drive.google.com/uc?id=1qb4k0OdZhvTHs4AjEP69lnwT8pnTB74d"  # Fixed URL for gdown
 
 if not os.path.exists(model_path):
-    print(f"Downloading model to {model_path}...")
-    gdown.download(url=google_drive_url, output=model_path, quiet=False)
-    print("Download complete.")
-
-
-
-# 3. Load the model from the path where it was just downloaded
+    st.info("Downloading model from Google Drive...")
+    try:
+        gdown.download(google_drive_url, model_path, quiet=False)
+        st.success("Model downloaded successfully.")
+    except Exception as e:
+        st.error(f"❌ Failed to download model: {e}")
 
 try:
     model = load_model(model_path)
-    print("Model loaded successfully!")
-    # Your app logic here...
-
+    st.success("✅ Model loaded successfully.")
 except Exception as e:
-    print(f"Error loading model: {e}")
-
-
-
-# Google Drive File ID
-
-
+    model = None  # Prevent undefined variable error
+    st.error(f"❌ Could not load model: {e}")
 
 DOCTOR_DATABASE = {
     'Cardiologist': [
@@ -108,13 +94,6 @@ def recommend_doctor(symptoms):
 # ✅ Load trained model
 
 # Other code...
-
-try:
-    # Notice the indentation here
-    model = load_model(r'C:\Users\AMAN PANDEY\Programs\Hybrid Model\Hybrid\best_model.h5')
-    # any other code that should be "tried" must also be indented
-except Exception as e:
-    print(f"An error occurred: {e}")
 
 # ✅ Class names
 class_names = ['Calculus', 'Dental Caries', 'Ulcer']
@@ -286,5 +265,6 @@ elif page == "Appointment Booking":
             st.success(f"✅ Appointment successfully booked for {patient_name} with {selected_doctor_name} on {appointment_date} at {appointment_time}.")
             st.info("You will receive a confirmation call shortly. Please pay the consultation fee at the clinic.")
             st.balloons()
+
 
 
