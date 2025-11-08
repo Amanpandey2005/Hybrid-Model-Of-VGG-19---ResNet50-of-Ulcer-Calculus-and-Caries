@@ -100,10 +100,6 @@ def recommend_doctor(symptoms):
 # ✅ Class names
 class_names = ['Calculus', 'Dental Caries', 'Ulcer']
 
-# ✅ Page config
-st.set_page_config(page_title="AI Health Assistant", page_icon="🩺", layout="wide")
-
-
 
 # ✅ Sidebar Navigation
 st.sidebar.title("🌐 Navigation")
@@ -267,6 +263,7 @@ elif page == "Appointment Booking":
             st.success(f"✅ Appointment successfully booked for {patient_name} with {selected_doctor_name} on {appointment_date} at {appointment_time}.")
             st.info("You will receive a confirmation call shortly. Please pay the consultation fee at the clinic.")
             st.balloons()
+
 
 
 
