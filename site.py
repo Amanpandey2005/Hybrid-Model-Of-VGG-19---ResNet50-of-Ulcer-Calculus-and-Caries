@@ -6,6 +6,8 @@ import os
 from tensorflow.keras.models import load_model
 import tensorflow as tf
 from tensorflow.keras.preprocessing import image
+
+st.set_page_config(page_title="AI Health Assistant", page_icon="🩺", layout="wide")
 # No longer need to import razorpay or json
 
 # --- Doctor Recommendation Logic ---
@@ -265,6 +267,7 @@ elif page == "Appointment Booking":
             st.success(f"✅ Appointment successfully booked for {patient_name} with {selected_doctor_name} on {appointment_date} at {appointment_time}.")
             st.info("You will receive a confirmation call shortly. Please pay the consultation fee at the clinic.")
             st.balloons()
+
 
 
 
